@@ -1,0 +1,15 @@
+#!/bin/bash
+
+REPL_COMMAND=${REPL_COMMAND:-'run -m rebel-readline.main'}
+
+IFS=']' read -ra args <<< "$*"
+
+deps=()
+
+for (( i=0; i<${#args[@]}; i+=2 )); do
+    dep=$(echo "${args[i]}]" | LC_ALL=C gsed -e 's/[^a-zA-Z0-9,._+@%/-]/\\&/g; 1{$s/^$/""/}; 1!s/^/"/; $!s/$/"/')
+    deps+="update-in :dependencies conj $dep -- "
+done
+
+command="lein $deps $REPL_COMMAND"
+eval $command
